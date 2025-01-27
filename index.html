@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromoScan Pro - Gestión Avanzada de Eventos y Promotores</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-qrcode"></i> PromoScan Pro</h1>
+        <nav>
+            <ul>
+                <li><a href="#events"><i class="fas fa-calendar-alt"></i> Eventos</a></li>
+                <li><a href="#scanner"><i class="fas fa-camera"></i> Escáner QR</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="events">
+            <h2><i class="fas fa-calendar-plus"></i> Gestión de Eventos</h2>
+            <form id="event-form">
+                <input type="text" id="event-title" placeholder="Título del evento" required>
+                <input type="date" id="event-date" required>
+                <input type="time" id="event-time" required>
+                <textarea id="event-description" placeholder="Descripción del evento" required></textarea>
+                <button type="submit"><i class="fas fa-plus"></i> Crear Evento</button>
+            </form>
+            <div id="event-list"></div>
+        </section>
+
+        <section id="scanner">
+            <h2><i class="fas fa-qrcode"></i> Escáner de Promotores</h2>
+            <div id="reader"></div>
+            <div id="scan-result"></div>
+            <div id="event-selector">
+                <label for="current-event"><i class="fas fa-clipboard-list"></i> Seleccionar evento:</label>
+                <select id="current-event"></select>
+            </div>
+            <div id="promoters-table-container">
+                <table id="promoters-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>DNI</th>
+                            <th>Celular</th>
+                            <th>Escaneos</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promoters-list"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 PromoScan Pro. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

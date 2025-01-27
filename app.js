@@ -11,8 +11,6 @@ const currentEventSelect = document.getElementById("current-event")
 const scanResult = document.getElementById("scan-result")
 const promotersList = document.getElementById("promoters-list")
 const openScannerBtn = document.getElementById("open-scanner-btn")
-const loadImageBtn = document.getElementById("load-image-btn")
-const qrInputFile = document.getElementById("qr-input-file")
 const scannerModal = document.getElementById("scanner-modal")
 const confirmationModal = document.getElementById("confirmation-modal")
 const closeBtn = document.querySelector(".close")
@@ -184,28 +182,6 @@ openScannerBtn.onclick = () => {
   scannerModal.style.display = "block"
   initializeScanner()
 }
-
-loadImageBtn.onclick = () => {
-  qrInputFile.click()
-}
-
-qrInputFile.addEventListener("change", (event) => {
-  if (event.target.files.length == 0) {
-    return
-  }
-  const imageFile = event.target.files[0]
-
-  html5QrCode = new Html5Qrcode("reader")
-  html5QrCode
-    .scanFile(imageFile, true)
-    .then((decodedText) => {
-      processQRCode(decodedText)
-    })
-    .catch((err) => {
-      console.log(`Error scanning file. Reason: ${err}`)
-      showConfirmation("Error al escanear la imagen. Por favor, intente con otra imagen.", true)
-    })
-})
 
 closeBtn.onclick = closeScannerModal
 

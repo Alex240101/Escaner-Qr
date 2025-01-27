@@ -229,10 +229,10 @@
     border-radius: 5px;
     cursor: pointer;
     font-size: 1rem;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 10px;
-    margin: 20px 0;
+    margin: 20px 10px 20px 0;
     transition: background-color 0.3s ease;
   }
   
@@ -332,5 +332,4 @@
     margin-top: 20px;
     font-weight: bold;
   }
-  
   

@@ -157,6 +157,14 @@ const qrCodeSuccessCallback = (decodedText, decodedResult) => {
         saveEvents()
         renderPromotersList(event.promoters)
         showConfirmation(`Escaneo exitoso: ${promoterData.nombre}`)
+        html5QrCode
+          .stop()
+          .then(() => {
+            console.log("Escáner detenido después de un escaneo exitoso")
+          })
+          .catch((err) => {
+            console.error("Error al detener el escáner:", err)
+          })
       } catch (error) {
         showConfirmation("Error: Código QR inválido", true)
       }
@@ -172,7 +180,9 @@ function showConfirmation(message, isError = false) {
   confirmationModal.style.display = "block"
   setTimeout(() => {
     confirmationModal.style.display = "none"
-    closeScannerModal()
+    if (!isError) {
+      closeScannerModal()
+    }
   }, 2000)
 }
 
@@ -197,6 +207,7 @@ function closeScannerModal() {
       .stop()
       .then(() => {
         console.log("Escáner detenido")
+        html5QrCode.clear()
       })
       .catch((err) => {
         console.error("Error al detener el escáner:", err)

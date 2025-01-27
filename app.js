@@ -129,14 +129,24 @@ function updateEventSelector() {
 //html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
 
 //Manejo del escáner QR
+let isScanning = false
+
 function initializeScanner() {
   html5QrCode = new Html5Qrcode("reader")
   const config = { fps: 10, qrbox: { width: 250, height: 250 } }
+
+  document.getElementById("scan-animation").style.display = "block"
+  isScanning = true
 
   html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
 }
 
 const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+  if (!isScanning) return
+
+  isScanning = false
+  document.getElementById("scan-animation").style.display = "none"
+
   if (currentEventId) {
     const event = events.find((e) => e.id === currentEventId)
     if (event) {
@@ -157,14 +167,6 @@ const qrCodeSuccessCallback = (decodedText, decodedResult) => {
         saveEvents()
         renderPromotersList(event.promoters)
         showConfirmation(`Escaneo exitoso: ${promoterData.nombre}`)
-        html5QrCode
-          .stop()
-          .then(() => {
-            console.log("Escáner detenido después de un escaneo exitoso")
-          })
-          .catch((err) => {
-            console.error("Error al detener el escáner:", err)
-          })
       } catch (error) {
         showConfirmation("Error: Código QR inválido", true)
       }
@@ -172,6 +174,15 @@ const qrCodeSuccessCallback = (decodedText, decodedResult) => {
   } else {
     showConfirmation("Por favor, seleccione un evento antes de escanear.", true)
   }
+
+  html5QrCode
+    .stop()
+    .then(() => {
+      console.log("Escáner detenido después de un escaneo exitoso")
+    })
+    .catch((err) => {
+      console.error("Error al detener el escáner:", err)
+    })
 }
 
 function showConfirmation(message, isError = false) {
@@ -213,6 +224,8 @@ function closeScannerModal() {
         console.error("Error al detener el escáner:", err)
       })
   }
+  document.getElementById("scan-animation").style.display = "none"
+  isScanning = false
 }
 
 currentEventSelect.addEventListener("change", (e) => {

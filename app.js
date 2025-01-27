@@ -1,7 +1,8 @@
 // Inicialización de variables globales
 let events = []
 let currentEventId = null
-//const html5QrCode = new Html5Qrcode("reader")
+let html5QrCode
+let isScanning = false
 
 // Elementos del DOM
 const eventForm = document.getElementById("event-form")
@@ -10,12 +11,12 @@ const currentEventSelect = document.getElementById("current-event")
 const scanResult = document.getElementById("scan-result")
 const promotersList = document.getElementById("promoters-list")
 const openScannerBtn = document.getElementById("open-scanner-btn")
+const loadImageBtn = document.getElementById("load-image-btn")
+const qrInputFile = document.getElementById("qr-input-file")
 const scannerModal = document.getElementById("scanner-modal")
 const confirmationModal = document.getElementById("confirmation-modal")
 const closeBtn = document.querySelector(".close")
 const confirmationMessage = document.getElementById("confirmation-message")
-
-let html5QrCode
 
 // Funciones de utilidad
 function generateId() {
@@ -90,55 +91,29 @@ function updateEventSelector() {
   })
 }
 
-// Escáner QR
-//const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-//  if (currentEventId) {
-//    const event = events.find((e) => e.id === currentEventId)
-//    if (event) {
-//      try {
-//        const promoterData = JSON.parse(decodedText)
-//        if (!event.promoters) {
-//          event.promoters = []
-//        }
-//        const existingPromoter = event.promoters.find((p) => p.dni === promoterData.dni)
-//        if (existingPromoter) {
-//          existingPromoter.scans++
-//        } else {
-//          event.promoters.push({
-//            ...promoterData,
-//            scans: 1,
-//          })
-//        }
-//        saveEvents()
-//        renderPromotersList(event.promoters)
-//        scanResult.textContent = `Escaneo exitoso: ${promoterData.nombre}`
-//        scanResult.style.color = "var(--success-color)"
-//      } catch (error) {
-//        scanResult.textContent = "Error: Código QR inválido"
-//        scanResult.style.color = "var(--error-color)"
-//      }
-//    }
-//  } else {
-//    scanResult.textContent = "Por favor, seleccione un evento antes de escanear."
-//    scanResult.style.color = "var(--error-color)"
-//  }
-//}
-
-//const config = { fps: 10, qrbox: { width: 250, height: 250 } }
-
-//html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
-
-//Manejo del escáner QR
-let isScanning = false
-
+// Manejo del escáner QR
 function initializeScanner() {
   html5QrCode = new Html5Qrcode("reader")
-  const config = { fps: 10, qrbox: { width: 250, height: 250 } }
+  const config = {
+    fps: 10,
+    qrbox: { width: 250, height: 250 },
+    experimentalFeatures: {
+      useBarCodeDetectorIfSupported: true,
+    },
+    rememberLastUsedCamera: true,
+    aspectRatio: 1.0,
+  }
 
   document.getElementById("scan-animation").style.display = "block"
   isScanning = true
 
-  html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
+  html5QrCode
+    .start({ facingMode: "environment" }, config, qrCodeSuccessCallback, (errorMessage) => {
+      // Manejo de errores silencioso para evitar logs innecesarios
+    })
+    .catch((err) => {
+      console.error(`Unable to start scanning, error: ${err}`)
+    })
 }
 
 const qrCodeSuccessCallback = (decodedText, decodedResult) => {
@@ -147,42 +122,49 @@ const qrCodeSuccessCallback = (decodedText, decodedResult) => {
   isScanning = false
   document.getElementById("scan-animation").style.display = "none"
 
+  try {
+    const promoterData = JSON.parse(decodedText)
+    processPromoterData(promoterData)
+  } catch (error) {
+    console.error("Error parsing QR code data:", error)
+    showConfirmation("Error: Código QR inválido", true)
+  }
+}
+
+function processPromoterData(promoterData) {
   if (currentEventId) {
     const event = events.find((e) => e.id === currentEventId)
     if (event) {
-      try {
-        const promoterData = JSON.parse(decodedText)
-        if (!event.promoters) {
-          event.promoters = []
-        }
-        const existingPromoter = event.promoters.find((p) => p.dni === promoterData.dni)
-        if (existingPromoter) {
-          existingPromoter.scans++
-        } else {
-          event.promoters.push({
-            ...promoterData,
-            scans: 1,
-          })
-        }
-        saveEvents()
-        renderPromotersList(event.promoters)
-        showConfirmation(`Escaneo exitoso: ${promoterData.nombre}`)
-      } catch (error) {
-        showConfirmation("Error: Código QR inválido", true)
+      if (!event.promoters) {
+        event.promoters = []
       }
+      const existingPromoter = event.promoters.find((p) => p.dni === promoterData.dni)
+      if (existingPromoter) {
+        existingPromoter.scans++
+      } else {
+        event.promoters.push({
+          ...promoterData,
+          scans: 1,
+        })
+      }
+      saveEvents()
+      renderPromotersList(event.promoters)
+      showConfirmation(`Escaneo exitoso: ${promoterData.nombre}`)
     }
   } else {
     showConfirmation("Por favor, seleccione un evento antes de escanear.", true)
   }
 
-  html5QrCode
-    .stop()
-    .then(() => {
-      console.log("Escáner detenido después de un escaneo exitoso")
-    })
-    .catch((err) => {
-      console.error("Error al detener el escáner:", err)
-    })
+  if (html5QrCode) {
+    html5QrCode
+      .stop()
+      .then(() => {
+        console.log("Escáner detenido después de un escaneo exitoso")
+      })
+      .catch((err) => {
+        console.error("Error al detener el escáner:", err)
+      })
+  }
 }
 
 function showConfirmation(message, isError = false) {
@@ -202,6 +184,28 @@ openScannerBtn.onclick = () => {
   scannerModal.style.display = "block"
   initializeScanner()
 }
+
+loadImageBtn.onclick = () => {
+  qrInputFile.click()
+}
+
+qrInputFile.addEventListener("change", (event) => {
+  if (event.target.files.length == 0) {
+    return
+  }
+  const imageFile = event.target.files[0]
+
+  html5QrCode = new Html5Qrcode("reader")
+  html5QrCode
+    .scanFile(imageFile, true)
+    .then((decodedText) => {
+      processQRCode(decodedText)
+    })
+    .catch((err) => {
+      console.log(`Error scanning file. Reason: ${err}`)
+      showConfirmation("Error al escanear la imagen. Por favor, intente con otra imagen.", true)
+    })
+})
 
 closeBtn.onclick = closeScannerModal
 

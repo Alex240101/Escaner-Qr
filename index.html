@@ -35,12 +35,12 @@
 
         <section id="scanner">
             <h2><i class="fas fa-qrcode"></i> Escáner de Promotores</h2>
-            <div id="reader"></div>
-            <div id="scan-result"></div>
             <div id="event-selector">
                 <label for="current-event"><i class="fas fa-clipboard-list"></i> Seleccionar evento:</label>
                 <select id="current-event"></select>
             </div>
+            <button id="open-scanner-btn" class="action-button"><i class="fas fa-camera"></i> Abrir Escáner</button>
+            <div id="scan-result"></div>
             <div id="promoters-table-container">
                 <table id="promoters-table">
                     <thead>
@@ -56,6 +56,21 @@
             </div>
         </section>
     </main>
+
+    <div id="scanner-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Escanear Código QR</h2>
+            <div id="reader"></div>
+        </div>
+    </div>
+
+    <div id="confirmation-modal" class="modal">
+        <div class="modal-content">
+            <h2>Escaneo Exitoso</h2>
+            <p id="confirmation-message"></p>
+        </div>
+    </div>
 
     <footer>
         <p>&copy; 2023 PromoScan Pro. Todos los derechos reservados.</p>

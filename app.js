@@ -1,7 +1,7 @@
 // Inicialización de variables globales
 let events = []
 let currentEventId = null
-const html5QrCode = new Html5Qrcode("reader")
+//const html5QrCode = new Html5Qrcode("reader")
 
 // Elementos del DOM
 const eventForm = document.getElementById("event-form")
@@ -9,6 +9,13 @@ const eventList = document.getElementById("event-list")
 const currentEventSelect = document.getElementById("current-event")
 const scanResult = document.getElementById("scan-result")
 const promotersList = document.getElementById("promoters-list")
+const openScannerBtn = document.getElementById("open-scanner-btn")
+const scannerModal = document.getElementById("scanner-modal")
+const confirmationModal = document.getElementById("confirmation-modal")
+const closeBtn = document.querySelector(".close")
+const confirmationMessage = document.getElementById("confirmation-message")
+
+let html5QrCode
 
 // Funciones de utilidad
 function generateId() {
@@ -84,6 +91,51 @@ function updateEventSelector() {
 }
 
 // Escáner QR
+//const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+//  if (currentEventId) {
+//    const event = events.find((e) => e.id === currentEventId)
+//    if (event) {
+//      try {
+//        const promoterData = JSON.parse(decodedText)
+//        if (!event.promoters) {
+//          event.promoters = []
+//        }
+//        const existingPromoter = event.promoters.find((p) => p.dni === promoterData.dni)
+//        if (existingPromoter) {
+//          existingPromoter.scans++
+//        } else {
+//          event.promoters.push({
+//            ...promoterData,
+//            scans: 1,
+//          })
+//        }
+//        saveEvents()
+//        renderPromotersList(event.promoters)
+//        scanResult.textContent = `Escaneo exitoso: ${promoterData.nombre}`
+//        scanResult.style.color = "var(--success-color)"
+//      } catch (error) {
+//        scanResult.textContent = "Error: Código QR inválido"
+//        scanResult.style.color = "var(--error-color)"
+//      }
+//    }
+//  } else {
+//    scanResult.textContent = "Por favor, seleccione un evento antes de escanear."
+//    scanResult.style.color = "var(--error-color)"
+//  }
+//}
+
+//const config = { fps: 10, qrbox: { width: 250, height: 250 } }
+
+//html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
+
+//Manejo del escáner QR
+function initializeScanner() {
+  html5QrCode = new Html5Qrcode("reader")
+  const config = { fps: 10, qrbox: { width: 250, height: 250 } }
+
+  html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
+}
+
 const qrCodeSuccessCallback = (decodedText, decodedResult) => {
   if (currentEventId) {
     const event = events.find((e) => e.id === currentEventId)
@@ -104,22 +156,53 @@ const qrCodeSuccessCallback = (decodedText, decodedResult) => {
         }
         saveEvents()
         renderPromotersList(event.promoters)
-        scanResult.textContent = `Escaneo exitoso: ${promoterData.nombre}`
-        scanResult.style.color = "var(--success-color)"
+        showConfirmation(`Escaneo exitoso: ${promoterData.nombre}`)
       } catch (error) {
-        scanResult.textContent = "Error: Código QR inválido"
-        scanResult.style.color = "var(--error-color)"
+        showConfirmation("Error: Código QR inválido", true)
       }
     }
   } else {
-    scanResult.textContent = "Por favor, seleccione un evento antes de escanear."
-    scanResult.style.color = "var(--error-color)"
+    showConfirmation("Por favor, seleccione un evento antes de escanear.", true)
   }
 }
 
-const config = { fps: 10, qrbox: { width: 250, height: 250 } }
+function showConfirmation(message, isError = false) {
+  confirmationMessage.textContent = message
+  confirmationMessage.style.color = isError ? "var(--error-color)" : "var(--success-color)"
+  confirmationModal.style.display = "block"
+  setTimeout(() => {
+    confirmationModal.style.display = "none"
+    closeScannerModal()
+  }, 2000)
+}
 
-html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
+// Manejo de modales
+openScannerBtn.onclick = () => {
+  scannerModal.style.display = "block"
+  initializeScanner()
+}
+
+closeBtn.onclick = closeScannerModal
+
+window.onclick = (event) => {
+  if (event.target == scannerModal) {
+    closeScannerModal()
+  }
+}
+
+function closeScannerModal() {
+  scannerModal.style.display = "none"
+  if (html5QrCode) {
+    html5QrCode
+      .stop()
+      .then(() => {
+        console.log("Escáner detenido")
+      })
+      .catch((err) => {
+        console.error("Error al detener el escáner:", err)
+      })
+  }
+}
 
 currentEventSelect.addEventListener("change", (e) => {
   currentEventId = e.target.value
